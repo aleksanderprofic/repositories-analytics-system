@@ -1,10 +1,10 @@
-package pl.edu.uj.ii.repositoriesanalyticssystem;
+package pl.edu.uj.ii.main;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RepositoriesAnalyticsSystemApplicationTests {
+class ApplicationTests {
 
     @Test
     void contextLoads() {
