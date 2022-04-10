@@ -1,102 +1,56 @@
 package pl.edu.uj.ii.main.services;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.stream.Stream;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class GitService {
 
     public String getRepository(final String url) {
-        try (Repository repository = Git.cloneRepository().setCloneAllBranches(true).setURI(url).call().getRepository()){
-            System.out.println(repository);
-            System.out.println(repository.getAdditionalHaves());
-            System.out.println(repository.getAllRefsByPeeledObjectId());
+        try (Git git = Git.cloneRepository().setURI(url).call()) {
+            final Set<Ref> branches = git
+                    .branchList()
+                    .setListMode(ListBranchCommand.ListMode.ALL)
+                    .call()
+                    .stream()
+                    .filter(el -> el.getName().contains("refs/remotes"))
+                    .collect(Collectors.toSet());
 
-            Git git = new Git(repository);
+            for (final Ref ref : branches) {
+                System.out.println("Branch name: " + ref.getName());
+                System.out.println("Branch: " + ref.getObjectId().name());
+                git.checkout().setName(ref.getObjectId().name()).call();
 
-            for (Ref branch : git.branchList().call()){
-                git.checkout().setName(branch.getName()).call();
-                // Then just revwalk as normal.
-                Iterable<RevCommit> log = git.log().call();
-                for (RevCommit rev : log) {
-                    System.out.println("Branch: " + branch);
+                for (final RevCommit rev : git.log().call()) {
+                    System.out.println("=====================");
                     System.out.println("Author: " + rev.getAuthorIdent().getName());
-                    System.out.println("Parents: " + Arrays.toString(new Stream[]{Arrays.stream(rev.getParents()).map(AnyObjectId::name)}));
-                    System.out.println("Message: " + rev.getFullMessage());
+                    System.out.println("Parents: " + Arrays.stream(rev.getParents()).map(AnyObjectId::name).collect(Collectors.toList()));
+                    System.out.println("Message: " + rev.getShortMessage());
                     System.out.println("Commit time: " + rev.getCommitTime());
                     System.out.println("SHA1: " + rev.name());
                 }
             }
+
 // jaki branch, referencje do rodziców: [sha tylko], sha, data
 //            RevWalk walk = new RevWalk(repository);
 //            walk.markStart(walk.parseCommit(repository.resolve("HEAD")));
 //            for (RevCommit rev : walk) {
-////                It never cames in this block
 //
 //                System.out.println(rev.getAuthorIdent().getName());
 //                System.out.println(rev.getFullMessage());
 //            }
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
             e.printStackTrace();
         }
-
-
-
         return url;
     }
-
-//    public String getRepository(final String url) {
-//        try {
-//            System.out.println("Listing remote repository " + url);
-//            Collection<Ref> refs = Git.lsRemoteRepository()
-//                    .setHeads(true)
-//                    .setTags(true)
-//                    .setRemote(url)
-//                    .call();
-//
-//            for (Ref ref : refs) {
-//                System.out.println("Ref: " + ref);
-//                Ref ref2;
-//                while((ref2 = ref.getLeaf()) != ref) {
-//                    System.out.println("Ref: " + ref2);
-//                }
-//            }
-//
-//            final Map<String, Ref> map = Git.lsRemoteRepository()
-//                    .setHeads(true)
-//                    .setTags(true)
-//                    .setRemote(url)
-//                    .callAsMap();
-//
-//            System.out.println("As map");
-//            for (Map.Entry<String, Ref> entry : map.entrySet()) {
-//                System.out.println("Key: " + entry.getKey() + ", Ref: " + entry.getValue());
-//            }
-//
-//            refs = Git.lsRemoteRepository()
-//                    .setRemote(url)
-//                    .call();
-//
-//            System.out.println("All refs");
-//            for (Ref ref : refs) {
-//                System.out.println("Ref: " + ref);
-//            }
-//        } catch (GitAPIException e) {
-//            e.printStackTrace();
-//        }
-//        return url;
-//    }
 }
