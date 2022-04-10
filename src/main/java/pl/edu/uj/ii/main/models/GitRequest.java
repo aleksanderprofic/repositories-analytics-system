@@ -1,15 +1,13 @@
 package pl.edu.uj.ii.main.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 
-public class RepositoryRequest {
+@Getter
+public class GitRequest {
     private final String repoUrl;
 
-    public RepositoryRequest(@JsonProperty("url") String repoUrl) {
+    public GitRequest(@JsonProperty("url") String repoUrl) {
         this.repoUrl = repoUrl;
-    }
-
-    public String getRepoUrl() {
-        return repoUrl;
     }
 }
