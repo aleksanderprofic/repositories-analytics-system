@@ -6,9 +6,9 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pl.edu.uj.ii.main.models.Branch;
 import pl.edu.uj.ii.main.models.CommitChangesAmount;
-import pl.edu.uj.ii.main.models.CommitParent;
-import pl.edu.uj.ii.main.models.CommitResult;
+import pl.edu.uj.ii.main.models.Commit;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,24 +25,27 @@ public class GithubService {
         this.github = github;
     }
 
-    public List<CommitResult> getCommits(final String name) throws IOException {
+    public List<Branch> getCommits(final String name) throws IOException {
         final GHRepository ghRepository = github.getRepository(name);
-
         final Map<String, GHBranch> namesToBranches = ghRepository.getBranches();
+        final List<Branch> branches = new ArrayList<>();
 
+        for (final Map.Entry<String, GHBranch> entry : namesToBranches.entrySet()) {
+            final String branchName = entry.getKey();
+            final List<Commit> branchCommits = new ArrayList<>();
 
-        final List<CommitResult> results = new ArrayList<>();
-        ghRepository.queryCommits().from("").list();
+            for (final GHCommit githubCommit : ghRepository.queryCommits().from(branchName).list()) {
+                final List<String> parentsSha = githubCommit.getParentSHA1s();
+                final String message = githubCommit.getCommitShortInfo().getMessage();
+                final long time = githubCommit.getCommitDate().getTime();
+                final String sha = githubCommit.getSHA1();
+                final Commit commit = new Commit(message, time, sha, parentsSha);
 
-        for (GHCommit commit : ghRepository.listCommits()) {
-            final List<String> parentsSha = commit.getParentSHA1s();
-            final String message = commit.getCommitShortInfo().getMessage();
-            final long time = commit.getCommitDate().getTime();
-            final String sha = commit.getSHA1();
-            final CommitResult commitResult = new CommitResult(message, time, sha, parentsSha);
-            results.add(commitResult);
+                branchCommits.add(commit);
+            }
+            branches.add(new Branch(branchName, branchCommits));
         }
-        return results;
+        return branches;
     }
 
     public List<CommitChangesAmount> getCommitChangesAmount(final String name) throws IOException {
