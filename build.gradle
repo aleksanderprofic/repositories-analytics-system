@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.1.0.202203080745-r'
+    implementation 'org.kohsuke:github-api:1.306'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

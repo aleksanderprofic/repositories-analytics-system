@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class RepositoryResult {
+public class GithubRepositoryResult {
     private final String branchName;
     private final List<CommitResult> commits;
 }
