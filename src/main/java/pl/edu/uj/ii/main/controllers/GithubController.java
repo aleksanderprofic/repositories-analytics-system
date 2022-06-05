@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pl.edu.uj.ii.main.models.Branch;
 import pl.edu.uj.ii.main.models.CommitChangesAmount;
-import pl.edu.uj.ii.main.models.CommitResult;
 import pl.edu.uj.ii.main.services.GithubService;
 
 import java.io.IOException;
@@ -20,10 +20,10 @@ public class GithubController {
 
     private final GithubService githubService;
 
-    @GetMapping("/getCommits")
+    @GetMapping("/branches")
     @CrossOrigin
-    public List<CommitResult> getCommits(@RequestParam("name") final String name) throws IOException {
-        return githubService.getCommits(name);
+    public List<Branch> getBranches(@RequestParam("repositoryName") final String repositoryName) throws IOException {
+        return githubService.getCommits(repositoryName);
     }
 
     @GetMapping("/getCommitChangesAmount")
