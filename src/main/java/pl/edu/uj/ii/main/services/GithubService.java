@@ -1,5 +1,6 @@
 package pl.edu.uj.ii.main.services;
 
+import org.kohsuke.github.GHBranch;
 import org.kohsuke.github.GHCommit;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -12,7 +13,7 @@ import pl.edu.uj.ii.main.models.CommitResult;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class GithubService {
@@ -27,17 +28,19 @@ public class GithubService {
     public List<CommitResult> getCommits(final String name) throws IOException {
         final GHRepository ghRepository = github.getRepository(name);
 
+        final Map<String, GHBranch> namesToBranches = ghRepository.getBranches();
+
+
         final List<CommitResult> results = new ArrayList<>();
+        ghRepository.queryCommits().from("").list();
+
         for (GHCommit commit : ghRepository.listCommits()) {
-            try {
-                final CommitResult commitResult = new CommitResult(commit.getCommitShortInfo().getMessage(),
-                        commit.getCommitDate().getTime(),
-                        commit.getSHA1(),
-                        commit.getParents().stream().map(GHCommit::getSHA1).collect(Collectors.toList()));
-                results.add(commitResult);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            final List<String> parentsSha = commit.getParentSHA1s();
+            final String message = commit.getCommitShortInfo().getMessage();
+            final long time = commit.getCommitDate().getTime();
+            final String sha = commit.getSHA1();
+            final CommitResult commitResult = new CommitResult(message, time, sha, parentsSha);
+            results.add(commitResult);
         }
         return results;
     }
