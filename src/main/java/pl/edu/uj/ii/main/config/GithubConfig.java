@@ -11,7 +11,6 @@ import java.io.IOException;
 public class GithubConfig {
     @Bean
     public GitHub getGithub() throws IOException {
-        // TODO: Change to take the token from properties or even better from ENV variables
-        return GitHubBuilder.fromPropertyFile().build();
+        return GitHubBuilder.fromEnvironment().build();
     }
 }

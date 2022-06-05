@@ -10,5 +10,5 @@ public class CommitResult {
     private final String message;
     private final long time;
     private final String sha;
-//    private final List<GHCommit> parents;
+    private final List<String> parents;
 }
