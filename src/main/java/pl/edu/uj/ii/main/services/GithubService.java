@@ -1,63 +1,34 @@
 package pl.edu.uj.ii.main.services;
 
-import org.kohsuke.github.GHBranch;
-import org.kohsuke.github.GHCommit;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
+import com.spotify.github.v3.clients.GitHubClient;
+import com.spotify.github.v3.clients.RepositoryClient;
+import com.spotify.github.v3.repos.Branch;
+import com.spotify.github.v3.repos.CommitItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.edu.uj.ii.main.models.Branch;
-import pl.edu.uj.ii.main.models.CommitChangesAmount;
-import pl.edu.uj.ii.main.models.Commit;
+import pl.edu.uj.ii.main.models.GithubRepository;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class GithubService {
 
-    private final GitHub github;
+    private final GitHubClient gitHubClient;
 
     @Autowired
-    public GithubService(GitHub github) {
-        this.github = github;
+    public GithubService(GitHubClient gitHubClient) {
+        this.gitHubClient = gitHubClient;
     }
 
-    public List<Branch> getCommits(final String name) throws IOException {
-        final GHRepository ghRepository = github.getRepository(name);
-        final Map<String, GHBranch> namesToBranches = ghRepository.getBranches();
-        final List<Branch> branches = new ArrayList<>();
+    public GithubRepository getRepositoryInfo(final String name) throws ExecutionException, InterruptedException {
+        final String[] ownerAndNameSplit = name.split("/");
+        final RepositoryClient repositoryClient = gitHubClient.createRepositoryClient(ownerAndNameSplit[0], ownerAndNameSplit[1]);
 
-        for (final Map.Entry<String, GHBranch> entry : namesToBranches.entrySet()) {
-            final String branchName = entry.getKey();
-            final List<Commit> branchCommits = new ArrayList<>();
+        final CompletableFuture<List<Branch>> branches = repositoryClient.listBranches();
+        final CompletableFuture<List<CommitItem>> commits = repositoryClient.listCommits();
 
-            for (final GHCommit githubCommit : ghRepository.queryCommits().from(branchName).list()) {
-                final List<String> parentsSha = githubCommit.getParentSHA1s();
-                final String message = githubCommit.getCommitShortInfo().getMessage();
-                final long time = githubCommit.getCommitDate().getTime();
-                final String sha = githubCommit.getSHA1();
-                final Commit commit = new Commit(message, time, sha, parentsSha);
-
-                branchCommits.add(commit);
-            }
-            branches.add(new Branch(branchName, branchCommits));
-        }
-        return branches;
-    }
-
-    public List<CommitChangesAmount> getCommitChangesAmount(final String name) throws IOException {
-        final GHRepository ghRepository = github.getRepository(name);
-
-        final List<CommitChangesAmount> results = new ArrayList<>();
-        for (GHCommit commit : ghRepository.listCommits()) {
-            final CommitChangesAmount commitChangesAmount = new CommitChangesAmount(commit.getLinesAdded(),
-                    commit.getLinesChanged(),
-                    commit.getLinesDeleted());
-            results.add(commitChangesAmount);
-        }
-        return results;
+        return new GithubRepository(branches.get(), commits.get());
     }
 }
