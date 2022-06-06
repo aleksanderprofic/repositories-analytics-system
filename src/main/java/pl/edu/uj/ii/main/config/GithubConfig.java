@@ -1,16 +1,23 @@
 package pl.edu.uj.ii.main.config;
 
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GitHubBuilder;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spotify.github.v3.clients.GitHubClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
+import java.net.URI;
 
 @Configuration
 public class GithubConfig {
     @Bean
-    public GitHub getGithub() throws IOException {
-        return GitHubBuilder.fromEnvironment().build();
+    public GitHubClient getGithub() {
+        return GitHubClient.create(URI.create("https://api.github.com"), System.getenv("github_oauth"));
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper().setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
 }
