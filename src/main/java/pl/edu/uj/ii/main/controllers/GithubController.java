@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pl.edu.uj.ii.main.models.GithubCommit;
 import pl.edu.uj.ii.main.models.GithubRepository;
 import pl.edu.uj.ii.main.services.GithubService;
 
@@ -22,5 +23,11 @@ public class GithubController {
     @CrossOrigin
     public GithubRepository getRepositoryInfo(@RequestParam("repositoryName") final String repositoryName) throws ExecutionException, InterruptedException {
         return githubService.getRepositoryInfo(repositoryName);
+    }
+
+    @GetMapping("/commit")
+    @CrossOrigin
+    public GithubCommit getCommitInfo(@RequestParam("repositoryName") final String repositoryName, @RequestParam("commitSha") final String commitSha) throws ExecutionException, InterruptedException {
+        return githubService.getCommitInfo(repositoryName, commitSha);
     }
 }
