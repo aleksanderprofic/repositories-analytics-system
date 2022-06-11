@@ -23,10 +23,4 @@ public class GithubController {
     public GithubRepository getRepositoryInfo(@RequestParam("repositoryName") final String repositoryName) throws ExecutionException, InterruptedException {
         return githubService.getRepositoryInfo(repositoryName);
     }
-
-//    @GetMapping("/getCommitChangesAmount")
-//    public List<CommitChangesAmount> getCommitChangesAmount(@RequestParam("name") final String name) throws IOException {
-//        return githubService.getCommitChangesAmount(name);
-//    }
-
 }
