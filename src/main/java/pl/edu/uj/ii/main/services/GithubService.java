@@ -46,11 +46,11 @@ public class GithubService {
         final CompletableFuture<List<Branch>> branches = repositoryClient.listBranches();
         final CompletableFuture<List<CommitItem>> commits = repositoryClient.listCommits();
 
-        final PercentageLanguages percentageLanguages = computeLanguagePercentages(languages.get());
+        final Map<String, BigDecimal> percentageLanguages = computeLanguagePercentages(languages.get());
         return new GithubRepository(repository.get(), branches.get(), commits.get(), percentageLanguages);
     }
 
-    private PercentageLanguages computeLanguagePercentages(final Languages languageStatistics) {
+    private Map<String, BigDecimal> computeLanguagePercentages(final Languages languageStatistics) {
         final Collection<Integer> values = languageStatistics.values();
         final int valuesSum = values.stream().reduce(0, Integer::sum);
         final PercentageLanguages percentageLanguages = new PercentageLanguages();
