@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.edu.uj.ii.main.models.GithubCommit;
+import pl.edu.uj.ii.main.models.GithubCommitComparison;
 import pl.edu.uj.ii.main.models.GithubRepository;
 import pl.edu.uj.ii.main.services.GithubService;
 
@@ -29,5 +30,11 @@ public class GithubController {
     @CrossOrigin
     public GithubCommit getCommitInfo(@RequestParam("repositoryName") final String repositoryName, @RequestParam("commitSha") final String commitSha) throws ExecutionException, InterruptedException {
         return githubService.getCommitInfo(repositoryName, commitSha);
+    }
+
+    @GetMapping("/commitComparison")
+    @CrossOrigin
+    public GithubCommitComparison getCommitComparison(@RequestParam("repositoryName") final String repositoryName, @RequestParam("baseCommitSha") final String baseCommitSha, @RequestParam("headCommitSha") final String headCommitSha) throws ExecutionException, InterruptedException {
+        return githubService.getCommitComparison(repositoryName, baseCommitSha, headCommitSha);
     }
 }
