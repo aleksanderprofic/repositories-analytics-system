@@ -4,10 +4,12 @@ import com.spotify.github.v3.clients.GitHubClient;
 import com.spotify.github.v3.clients.RepositoryClient;
 import com.spotify.github.v3.repos.Branch;
 import com.spotify.github.v3.repos.Commit;
+import com.spotify.github.v3.repos.CommitComparison;
 import com.spotify.github.v3.repos.CommitItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.uj.ii.main.models.GithubCommit;
+import pl.edu.uj.ii.main.models.GithubCommitComparison;
 import pl.edu.uj.ii.main.models.GithubRepository;
 
 import java.util.List;
@@ -44,5 +46,13 @@ public class GithubService {
         final CompletableFuture<Commit> githubCommit= repositoryClient.getCommit(commitSha);
 
         return new GithubCommit(githubCommit.get());
+    }
+
+    public GithubCommitComparison getCommitComparison(final String name, final String baseCommitSha, final String headCommitSha) throws ExecutionException, InterruptedException {
+        final RepositoryClient repositoryClient = getRepositoryClient(name);
+
+        final CompletableFuture<CommitComparison> githubCommit = repositoryClient.compareCommits(baseCommitSha, headCommitSha);
+
+        return new GithubCommitComparison(githubCommit.get());
     }
 }
