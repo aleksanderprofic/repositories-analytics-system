@@ -11,6 +11,7 @@ import pl.edu.uj.ii.main.models.CommitChangesAmount;
 import pl.edu.uj.ii.main.services.GithubService;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -22,8 +23,10 @@ public class GithubController {
 
     @GetMapping("/branches")
     @CrossOrigin
-    public List<Branch> getBranches(@RequestParam("repositoryName") final String repositoryName) throws IOException {
-        return githubService.getCommits(repositoryName);
+    public List<Branch> getBranches(@RequestParam("repositoryName") final String repositoryName,
+                                    @RequestParam(value = "since", required = false) String dateSince,
+                                    @RequestParam(value = "until", required = false) String dateUntil) throws IOException, ParseException {
+        return githubService.getCommits(repositoryName, dateSince, dateUntil);
     }
 
     @GetMapping("/getCommitChangesAmount")
