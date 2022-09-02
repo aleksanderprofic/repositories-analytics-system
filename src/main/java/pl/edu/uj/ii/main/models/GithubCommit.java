@@ -1,9 +1,9 @@
 package pl.edu.uj.ii.main.models;
 
 import com.spotify.github.v3.repos.Commit;
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 public class GithubCommit {
-    final Commit githubCommit;
+    Commit githubCommit;
 }

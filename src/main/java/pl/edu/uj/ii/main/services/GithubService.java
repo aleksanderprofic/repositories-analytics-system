@@ -2,6 +2,7 @@ package pl.edu.uj.ii.main.services;
 
 import com.spotify.github.v3.clients.GitHubClient;
 import com.spotify.github.v3.clients.RepositoryClient;
+import com.spotify.github.v3.git.ShaLink;
 import com.spotify.github.v3.repos.Branch;
 import com.spotify.github.v3.repos.Commit;
 import com.spotify.github.v3.repos.CommitComparison;
@@ -10,6 +11,7 @@ import com.spotify.github.v3.repos.Languages;
 import com.spotify.github.v3.repos.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pl.edu.uj.ii.main.models.GithubBranch;
 import pl.edu.uj.ii.main.models.GithubCommit;
 import pl.edu.uj.ii.main.models.GithubCommitComparison;
 import pl.edu.uj.ii.main.models.GithubRepository;
@@ -17,9 +19,14 @@ import pl.edu.uj.ii.main.models.PercentageLanguages;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -47,7 +54,42 @@ public class GithubService {
         final CompletableFuture<List<CommitItem>> commits = repositoryClient.listCommits();
 
         final Map<String, BigDecimal> percentageLanguages = computeLanguagePercentages(languages.get());
-        return new GithubRepository(repository.get(), branches.get(), commits.get(), percentageLanguages);
+
+        final Map<String, Set<CommitItem>> branchToCommits = new HashMap<>();
+        final Map<String, Set<String>> commitShaToBranchNames = new HashMap<>();
+
+        for (Branch branch: branches.get()) {
+            commitShaToBranchNames.put(
+                    Objects.requireNonNull(branch.commit()).sha(),
+                    new LinkedHashSet<>(Set.of(Objects.requireNonNull(branch.name())))
+            );
+        }
+
+        for (final CommitItem commit: commits.get()) {
+            final String currentCommitSha = commit.sha();
+            for (String branchName: commitShaToBranchNames.get(currentCommitSha)) {
+                if (!branchToCommits.containsKey(branchName)) {
+                    branchToCommits.put(branchName, new LinkedHashSet<>(Set.of(commit)));
+                }
+                else branchToCommits.get(branchName).add(commit);
+            }
+
+            List<ShaLink> parentsShaLinks = commit.parents();
+            if (parentsShaLinks == null) continue;
+
+            for (ShaLink parentShaLink: parentsShaLinks) {
+                final String parentSha = parentShaLink.sha();
+                final Set<String> branchNames = commitShaToBranchNames.get(currentCommitSha);
+                if (!commitShaToBranchNames.containsKey(parentSha))
+                    commitShaToBranchNames.put(parentSha, new LinkedHashSet<>(branchNames));
+                else commitShaToBranchNames.get(parentSha).addAll(branchNames);
+            }
+        }
+        final List<GithubBranch> githubBranches = new ArrayList<>();
+        for (Map.Entry<String, Set<CommitItem>> entry: branchToCommits.entrySet()) {
+            githubBranches.add(new GithubBranch(entry.getKey(), new ArrayList<>(entry.getValue())));
+        }
+        return new GithubRepository(repository.get(), githubBranches, percentageLanguages);
     }
 
     private Map<String, BigDecimal> computeLanguagePercentages(final Languages languageStatistics) {
